@@ -710,21 +710,29 @@ Pl_LE_Get_Char(void)
 
       esc_c = GET_CHAR0;
 #if defined(__unix__) || defined(__CYGWIN__)
-      if (esc_c == '[' || esc_c == 'O') /* keyboard ANSI ESC sequence */
+      if (esc_c == '[') /* keyboard ANSI CSI escape sequence */
         {
-          if ((c = GET_CHAR0) == '[')
-            c = GET_CHAR0;
-          if (isdigit(c))
+          c = 0;
+          esc_c = GET_CHAR0;
+          while ((esc_c == ';') || (('0' <= esc_c) && (esc_c <= '9')))
             {
-              esc_c = c;
-              c = 0;
-              while (esc_c != '~')
-                {
-                  c = c * 10 + esc_c - '0';
-                  esc_c = GET_CHAR0;
-                }
+              c = c * 11 + (esc_c == ';' ? 10 : esc_c - '0');
+              esc_c = GET_CHAR0;
             }
-          c = (1 << 8) | c;
+          c = (c << 8) | (1 << 31) | esc_c;
+        }
+      else if (esc_c == 'O') /* keyboard ANSI ESC O escape sequence */
+        {
+          c = GET_CHAR0;
+          switch (c)
+            {
+            case 'P':  c = KEY_EXT_FCT_1;  break;
+            case 'Q':  c = KEY_EXT_FCT_2;  break;
+            case 'R':  c = KEY_EXT_FCT_3;  break;
+            case 'S':  c = KEY_EXT_FCT_4;  break;
+            case 'H':  c = KEY_EXT_HOME;   break;
+            case 'F':  c = KEY_EXT_END;    break;
+            }
         }
       else
 #endif
