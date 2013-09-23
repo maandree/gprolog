@@ -704,6 +704,31 @@ Pl_LE_Get_Char(void)
 
   c = GET_CHAR0;
 
+#ifdef USE_UTF8
+  if (c & 0x80) /* More bytes needed for a complete character */
+    {
+      int n = 0;
+
+      while (c & 0x80) /* The first byte leads with as many zeroes as there are bytes */
+        {
+          c <<= 1;
+          ++n;
+        }
+      c = (c & 0xFF) >> n;
+
+      while (--n)
+        {
+          int ucs_c;
+
+          ucs_c = GET_CHAR0;
+          c = (c << 6) | (ucs_c & 0x3F);
+            /* All following bytes have c the two highest bits sets to true and false, respectively.
+             * All bytes that do no have only meaning in how to parse are character bits in the order
+             * the occur, high bits high, early bytes even higher. */
+        }
+    }
+#endif
+
   if (c == 0x1b)
     {
       int esc_c;
@@ -720,6 +745,11 @@ Pl_LE_Get_Char(void)
               esc_c = GET_CHAR0;
             }
           c = (c << 8) | (1 << 31) | esc_c;
+	  /* 1 << 31 is required so it does not interfere with UTF-8 decoding.
+	   * UCS, the characters defined by Unicode and are coverted by UTF-8
+	   * are limited to 31 bits, not 32, meaning that the 31:th bit is never
+	   * set (only non-negative characters exists) and negative characters
+	   * can be used internally the the program. */
         }
       else if (esc_c == 'O') /* keyboard ANSI ESC O escape sequence */
         {
@@ -741,6 +771,73 @@ Pl_LE_Get_Char(void)
 
   return c;
 }
+
+
+
+#ifdef USE_UTF8
+/*-------------------------------------------------------------------------*
+ * LE_GET_ENCODE_UTF8                                                      *
+ *                                                                         *
+ *-------------------------------------------------------------------------*/
+char *
+Pl_LE_Encode_UTF8(int *utf32)
+{
+  int ptr, size;
+  char *utf8;
+  char buff[8];
+
+  ptr = 0;
+  size = 64;
+  utf8 = malloc(64 * sizeof(char));
+
+  while (*utf32)
+    {
+      int c;
+
+      c = *utf32++;
+
+      if (c <= 0x7F) /* If the character finns in ASCII, it is ASCII encoded */
+        {
+          if (ptr == size)
+            utf8 = realloc(utf8, (size <<= 1) * sizeof(char));
+          *(utf8 + ptr++) = (char) c;
+        }
+      else
+        {
+          int n;
+          int mask;
+
+          n = 0;
+
+          while (c) /* Split the character by its bits */
+            {
+              buff[8 - ++n] = (char) (c & 0x3F);
+              c >>= 6;
+            }
+
+          mask = ((2 << n) - 1) << (7 - n); /* Mask should cover n 1:s and one 0 as the high bytes */
+
+          if (mask & c) /* The number if byte bits does not fit*/
+            buff[8 - ++n] = 0;
+
+          buff[8 - n] |= (char) ((mask << 1) & 0xFF); /* Remove the bit covering the zero*/
+
+          /* And now to add the bytes in the correct order, and set the highet bit for all bytes*/
+          if (ptr + n == size)
+            utf8 = realloc(utf8, (size <<= 1) * sizeof(char));
+          for (n = 8 - n; n < 8; n++)
+            *(utf8 + ptr++) = (char) (buff[n] | 0x80);
+        }
+    }
+
+  /* Add the NUL termination */
+  if (ptr == size)
+    utf8 = realloc(utf8, (size + 1) * sizeof(char));
+  *(utf8 + ptr) = 0;
+
+  return utf8;
+}
+#endif
 
 
 

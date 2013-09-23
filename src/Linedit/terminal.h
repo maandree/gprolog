@@ -36,6 +36,15 @@
  *-------------------------------------------------------------------------*/
 
 
+/* The terminnal uses UTF-8 on all systems but Windows without cygwin */
+
+#if !defined(_WIN32) || defined(__CYGWIN__)
+#ifndef DONT_USE_UTF8
+#define USE_UTF8
+#endif
+#endif
+
+
 /*---------------------------------*
  * Constants                       *
  *---------------------------------*/
@@ -177,6 +186,10 @@ void Pl_LE_Emit_Beep(void);
 void Pl_LE_Put_Char(int c);
 
 int Pl_LE_Get_Char(void);
+
+#ifdef USE_UTF8
+char *Pl_LE_Encode_UTF8(int *str);
+#endif
 
 
 
