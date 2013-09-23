@@ -1,3 +1,9 @@
+*~
+\#*\#
+*.sw[op]
+*.bak
+*.patch
+
 TO_DO
 TO_OPTIMIZE
 CONF
