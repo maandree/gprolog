@@ -48,50 +48,65 @@
 #define KEY_BACKSPACE              '\b'
 #define KEY_DELETE                 0x7f
 
+/* Macros used to defined key stroke value constants */
+#define _k(A, B)         (A * 11 + B)
+#define _K(A, C)         ((A << 7) | (1 << 31) | C)
+#define _K0(A)           _K(0, A)
+#define _K1(A, B)        _K(A, B)
+#define _K2(A, B, C)     _K(_k(A, B), C)
+#define _K3(A, B, C, D)  _K(_k(_k(A, B), C), D)
+#define _KX(X, K)        (K | (X << (32 - 8)))
+
+/* These will only occur on unix systems, but they still
+ * have to be defined when compiling for Windows */
+#define KEY_EXT_FCT_1_ALT          _KX('O', _K0('P'))
+#define KEY_EXT_FCT_2_ALT          _KX('O', _K0('Q'))
+#define KEY_EXT_FCT_3_ALT          _KX('O', _K0('R'))
+#define KEY_EXT_FCT_4_ALT          _KX('O', _K0('S'))
+#define KEY_EXT_HOME_ALT           _KX('O', _K0('H'))
+#define KEY_EXT_END_ALT            _KX('O', _K0('F'))
+
 
 #if defined(__unix__) || defined(__CYGWIN__)	/* Unix */
-#define _k(A, B)   (A * 11 + B)
-#define _K(A, C)   ((A << 8) | (1 << 31) | C)
 
+#define KEY_EXT_FCT_1              _K2(1, 1, '~')
+#define KEY_EXT_FCT_2              _K2(1, 2, '~')
+#define KEY_EXT_FCT_3              _K2(1, 3, '~')
+#define KEY_EXT_FCT_4              _K2(1, 4, '~')
+#define KEY_EXT_FCT_5              _K2(1, 5, '~')
 
-#define KEY_EXT_FCT_1              _K(_k(1, 1), '~')
-#define KEY_EXT_FCT_2              _K(_k(1, 2), '~')
-#define KEY_EXT_FCT_3              _K(_k(1, 3), '~')
-#define KEY_EXT_FCT_4              _K(_k(1, 4), '~')
-#define KEY_EXT_FCT_5              _K(_k(1, 5), '~')
+#define KEY_EXT_FCT_6              _K2(1, 7, '~')
+#define KEY_EXT_FCT_7              _K2(1, 8, '~')
+#define KEY_EXT_FCT_8              _K2(1, 9, '~')
+#define KEY_EXT_FCT_9              _K2(2, 0, '~')
+#define KEY_EXT_FCT_10             _K2(2, 1, '~')
 
-#define KEY_EXT_FCT_6              _K(_k(1, 7), '~')
-#define KEY_EXT_FCT_7              _K(_k(1, 8), '~')
-#define KEY_EXT_FCT_8              _K(_k(1, 9), '~')
-#define KEY_EXT_FCT_9              _K(_k(2, 0), '~')
-#define KEY_EXT_FCT_10             _K(_k(2, 1), '~')
+#define KEY_EXT_FCT_11             _K2(2, 3, '~')
+#define KEY_EXT_FCT_12             _K2(2, 4, '~')
 
-#define KEY_EXT_FCT_11             _K(_k(2, 3), '~')
-#define KEY_EXT_FCT_12             _K(_k(2, 4), '~')
+#define KEY_EXT_UP                 _K1(0, 'A')
+#define KEY_EXT_DOWN               _K1(0, 'B')
+#define KEY_EXT_RIGHT              _K1(0, 'C')
+#define KEY_EXT_LEFT               _K1(0, 'D')
 
-#define KEY_EXT_UP                 _K(0, 'A')
-#define KEY_EXT_DOWN               _K(0, 'B')
-#define KEY_EXT_RIGHT              _K(0, 'C')
-#define KEY_EXT_LEFT               _K(0, 'D')
+#define KEY_EXT_HOME               _K1(1, '~')
+#define KEY_EXT_END                _K1(4, '~')
+#define KEY_EXT_PAGE_UP            _K1(5, '~')
+#define KEY_EXT_PAGE_DOWN          _K1(6, '~')
+#define KEY_EXT_INSERT             _K1(2, '~')
+#define KEY_EXT_DELETE             _K1(3, '~')
 
-#define KEY_EXT_HOME               _K(1, '~')
-#define KEY_EXT_END                _K(4, '~')
-#define KEY_EXT_PAGE_UP            _K(5, '~')
-#define KEY_EXT_PAGE_DOWN          _K(6, '~')
-#define KEY_EXT_INSERT             _K(2, '~')
-#define KEY_EXT_DELETE             _K(3, '~')
+#define KEY_CTRL_EXT_UP            _K3(1, 10, 5, 'A')
+#define KEY_CTRL_EXT_DOWN          _K3(1, 10, 5, 'B')
+#define KEY_CTRL_EXT_RIGHT         _K3(1, 10, 5, 'C')
+#define KEY_CTRL_EXT_LEFT          _K3(1, 10, 5, 'D')
 
-#define KEY_CTRL_EXT_UP            _K(_k(_k(1, 10), 5), 'A')
-#define KEY_CTRL_EXT_DOWN          _K(_k(_k(1, 10), 5), 'B')
-#define KEY_CTRL_EXT_RIGHT         _K(_k(_k(1, 10), 5), 'C')
-#define KEY_CTRL_EXT_LEFT          _K(_k(_k(1, 10), 5), 'D')
-
-#define KEY_CTRL_EXT_HOME          _K(_k(_k(1, 10), 5), '~')
-#define KEY_CTRL_EXT_END           _K(_k(_k(4, 10), 5), '~')
-#define KEY_CTRL_EXT_PAGE_UP       _K(_k(_k(5, 10), 5), '~')
-#define KEY_CTRL_EXT_PAGE_DOWN     _K(_k(_k(6, 10), 5), '~')
-#define KEY_CTRL_EXT_INSERT        _K(_k(_k(2, 10), 5), '~')
-#define KEY_CTRL_EXT_DELETE        _K(_k(_k(3, 10), 5), '~')
+#define KEY_CTRL_EXT_HOME          _K3(1, 10, 5, '~')
+#define KEY_CTRL_EXT_END           _K3(4, 10, 5, '~')
+#define KEY_CTRL_EXT_PAGE_UP       _K3(5, 10, 5, '~')
+#define KEY_CTRL_EXT_PAGE_DOWN     _K3(6, 10, 5, '~')
+#define KEY_CTRL_EXT_INSERT        _K3(2, 10, 5, '~')
+#define KEY_CTRL_EXT_DELETE        _K3(3, 10, 5, '~')
 
 #elif defined(_WIN32)		/* Win32 */
 

@@ -707,31 +707,45 @@ Pl_LE_Get_Char(void)
   if (c == 0x1b)
     {
       int esc_c;
+      int extra;
 
       esc_c = GET_CHAR0;
 #if defined(__unix__) || defined(__CYGWIN__)
-      if (esc_c == '[') /* keyboard ANSI CSI escape sequence */
+      if ((esc_c == '[') || (esc_c == 'O')) /* keyboard ANSI escape sequence */
         {
           c = 0;
+          extra = 0;
+
+          /* Support for ESC [ [ and ESC O */
+          if (esc_c == '[')
+            {
+              esc_c = GET_CHAR0;
+              if (esc_c != '[')
+                goto skip_initial_char;
+            }
+          extra = esc_c << (32 - 8);
           esc_c = GET_CHAR0;
+
+        skip_initial_char:
+          /* Encode arguments, composed, in base 11  */
           while ((esc_c == ';') || (('0' <= esc_c) && (esc_c <= '9')))
             {
               c = c * 11 + (esc_c == ';' ? 10 : esc_c - '0');
               esc_c = GET_CHAR0;
             }
-          c = (c << 8) | (1 << 31) | esc_c;
-        }
-      else if (esc_c == 'O') /* keyboard ANSI ESC O escape sequence */
-        {
-          c = GET_CHAR0;
+
+          /* Encode with closing character and mark and finalise */
+          c = (c << 7) | (1 << 31) | esc_c | extra;
+
+          /* Convert synonyms so other methods do not have to be aware of them  */
           switch (c)
             {
-            case 'P':  c = KEY_EXT_FCT_1;  break;
-            case 'Q':  c = KEY_EXT_FCT_2;  break;
-            case 'R':  c = KEY_EXT_FCT_3;  break;
-            case 'S':  c = KEY_EXT_FCT_4;  break;
-            case 'H':  c = KEY_EXT_HOME;   break;
-            case 'F':  c = KEY_EXT_END;    break;
+            case KEY_EXT_FCT_1_ALT:  c = KEY_EXT_FCT_1;  break;
+            case KEY_EXT_FCT_2_ALT:  c = KEY_EXT_FCT_2;  break;
+            case KEY_EXT_FCT_3_ALT:  c = KEY_EXT_FCT_3;  break;
+            case KEY_EXT_FCT_4_ALT:  c = KEY_EXT_FCT_4;  break;
+            case KEY_EXT_HOME_ALT:   c = KEY_EXT_HOME;   break;
+            case KEY_EXT_END_ALT:    c = KEY_EXT_END;    break;
             }
         }
       else
