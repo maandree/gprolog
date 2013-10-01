@@ -41,21 +41,21 @@
  *---------------------------------*/
 
 
+#define ESC                        0x1b
 #define KEY_CTRL(x)                ((x) & 0x1f)
-
-#define KEY_ESC(x)                 ((2<<8) | ((x)|0x20))
+#define KEY_META(x)                ((255 << (32 - 8)) | (x) | 0x20)
 
 #define KEY_BACKSPACE              '\b'
 #define KEY_DELETE                 0x7f
 
 /* Macros used to defined key stroke value constants */
-#define _k(A, B)         (A * 11 + B)
-#define _K(A, C)         ((A << 7) | (1 << 31) | C)
-#define _K0(A)           _K(0, A)
-#define _K1(A, B)        _K(A, B)
-#define _K2(A, B, C)     _K(_k(A, B), C)
-#define _K3(A, B, C, D)  _K(_k(_k(A, B), C), D)
-#define _KX(X, K)        (K | (X << (32 - 8)))
+#define _k(a, b)         ((a) * 11 + (b))
+#define _K(a, c)         (((a) << 7) | (1 << 31) | (c))
+#define _K0(a)           _K(0, a)
+#define _K1(a, b)        _K(a, b)
+#define _K2(a, b, c)     _K(_k(a, b), c)
+#define _K3(a, b, c, d)  _K(_k(_k(a, b), c), d)
+#define _KX(x, k)        ((k) | ((x) << (32 - 8)))
 
 /* These will only occur on unix systems, but they still
  * have to be defined when compiling for Windows */
@@ -65,6 +65,7 @@
 #define KEY_EXT_FCT_4_ALT          _KX('O', _K0('S'))
 #define KEY_EXT_HOME_ALT           _KX('O', _K0('H'))
 #define KEY_EXT_END_ALT            _KX('O', _K0('F'))
+#define CYGWIN_FCT(n)              _KX('[', _K0('@' + (n)))
 
 
 #if defined(__unix__) || defined(__CYGWIN__)	/* Unix */

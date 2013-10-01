@@ -700,17 +700,18 @@ Pl_LE_Put_Char(int c)
 int
 Pl_LE_Get_Char(void)
 {
-  int c;
+  int c = GET_CHAR0;
 
-  c = GET_CHAR0;
-
-  if (c == 0x1b)
+  if (c == ESC)
     {
       int esc_c;
       int extra;
+      int meta;
 
       esc_c = GET_CHAR0;
 #if defined(__unix__) || defined(__CYGWIN__)
+      if ((meta = esc_c == ESC))
+        esc_c = GET_CHAR0;
       if ((esc_c == '[') || (esc_c == 'O')) /* keyboard ANSI escape sequence */
         {
           c = 0;
@@ -718,11 +719,8 @@ Pl_LE_Get_Char(void)
 
           /* Support for ESC [ [ and ESC O */
           if (esc_c == '[')
-            {
-              esc_c = GET_CHAR0;
-              if (esc_c != '[')
-                goto skip_initial_char;
-            }
+            if ((esc_c = GET_CHAR0) != '[')
+              goto skip_initial_char;
           extra = esc_c << (32 - 8);
           esc_c = GET_CHAR0;
 
@@ -746,11 +744,34 @@ Pl_LE_Get_Char(void)
             case KEY_EXT_FCT_4_ALT:  c = KEY_EXT_FCT_4;  break;
             case KEY_EXT_HOME_ALT:   c = KEY_EXT_HOME;   break;
             case KEY_EXT_END_ALT:    c = KEY_EXT_END;    break;
+            case CYGWIN_FCT(1):      c = KEY_EXT_FCT_1;  break;
+            case CYGWIN_FCT(2):      c = KEY_EXT_FCT_2;  break;
+            case CYGWIN_FCT(3):      c = KEY_EXT_FCT_3;  break;
+            case CYGWIN_FCT(4):      c = KEY_EXT_FCT_4;  break;
+            case CYGWIN_FCT(5):      c = KEY_EXT_FCT_5;  break;
             }
+	  
+#if 0
+          switch (c)
+            {
+	    case KEY_EXT_FCT_1:   printf("\n\033[31m++++ F1\033[00m\n");   break;
+	    case KEY_EXT_FCT_2:   printf("\n\033[31m++++ F2\033[00m\n");   break;
+	    case KEY_EXT_FCT_3:   printf("\n\033[31m++++ F3\033[00m\n");   break;
+	    case KEY_EXT_FCT_4:   printf("\n\033[31m++++ F4\033[00m\n");   break;
+	    case KEY_EXT_FCT_5:   printf("\n\033[31m++++ F5\033[00m\n");   break;
+	    case KEY_EXT_FCT_6:   printf("\n\033[31m++++ F6\033[00m\n");   break;
+	    case KEY_EXT_FCT_7:   printf("\n\033[31m++++ F7\033[00m\n");   break;
+	    case KEY_EXT_FCT_8:   printf("\n\033[31m++++ F8\033[00m\n");   break;
+	    case KEY_EXT_FCT_9:   printf("\n\033[31m++++ F9\033[00m\n");   break;
+	    case KEY_EXT_FCT_10:  printf("\n\033[31m++++ F10\033[00m\n");  break;
+	    case KEY_EXT_FCT_11:  printf("\n\033[31m++++ F11\033[00m\n");  break;
+	    case KEY_EXT_FCT_12:  printf("\n\033[31m++++ F12\033[00m\n");  break;
+            }
+#endif
         }
       else
 #endif
-        c = KEY_ESC(esc_c);
+        c = KEY_META(esc_c);
     }
 
   return c;
