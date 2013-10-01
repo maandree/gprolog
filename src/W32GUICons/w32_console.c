@@ -325,10 +325,7 @@ static void Show_Text_Console(int show);
   CheckMenuItem(GetMenu(hwndMain), idm_cmd, (var) ? MF_CHECKED : MF_UNCHECKED)
 
 
-/* from terminal.h */
-
-#define KEY_CTRL(x)                ((x) & 0x1f)
-#define KEY_ESC(x)                 ((2<<8) | ((x)|0x20))
+#include "../Linedit/terminal.h"
 
 
 
@@ -741,8 +738,8 @@ SubClassEdit(HWND hwnd, UINT msg, WPARAM mp1, LPARAM mp2)
         case VK_END:
         case VK_INSERT:
           Move_Caret_From_Mouse(0);
-          c = (hasCtrl) ? 2 : 1;
-          c = ((c << 8) | mp1);
+          c = hasCtrl ? KEY_MODIF_CTRL : KEY_MODIF_NONE;
+          c = MAKE_KEY(mp1, c);
           Add_Char_To_Queue(c);
           return 0;
 #if 0
@@ -1532,7 +1529,7 @@ static int
 Move_Caret_To(int start_or_end)
 {
   int prompt_length = (fct_get_prompt_length) ? (*fct_get_prompt_length)() : 0;
-  int c = (1 << 8) | VK_RIGHT;
+  int c = MAKE_KEY(VK_RIGHT, KEY_MODIF_NONE);
   int count;
 
   start_or_end -= ec_start;                 /* < 0 if not in the current (last) line */
@@ -1545,7 +1542,7 @@ Move_Caret_To(int start_or_end)
   if (count < 0)
     {
       count = -count;
-      c = (1 << 8) | VK_LEFT;
+      c = MAKE_KEY(VK_LEFT, KEY_MODIF_NONE);
     }
   while (count--)
     Add_Char_To_Queue(c);

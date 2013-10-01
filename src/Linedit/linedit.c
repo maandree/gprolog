@@ -365,21 +365,21 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
       switch (c)
         {
         case KEY_CTRL('A'):     /* go to begin of line */
-        case KEY_EXT_HOME:
+        case KEY_EXT_HOME(KEY_MODIF_NONE):
           BACKD(pos - str);
           pos = str;
           continue;
 
 
         case KEY_CTRL('E'):     /* go to end of line */
-        case KEY_EXT_END:
+        case KEY_EXT_END(KEY_MODIF_NONE):
           FORWD(end - pos, pos);
           pos = end;
           continue;
 
 
         case KEY_CTRL('B'):     /* go to 1 char backward */
-        case KEY_EXT_LEFT:
+        case KEY_EXT_LEFT(KEY_MODIF_NONE):
           if (pos == str)
             goto error;
           BACKD(1);
@@ -388,7 +388,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_CTRL('F'):     /* go to 1 char forward */
-        case KEY_EXT_RIGHT:
+        case KEY_EXT_RIGHT(KEY_MODIF_NONE):
           if (pos == end)
             goto error;
           FORWD(1, pos);
@@ -413,7 +413,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_CTRL('D'):     /* erase current char */
-        case KEY_EXT_DELETE:
+        case KEY_EXT_DELETE(KEY_MODIF_NONE):
           if (pos == end)
             goto error;
           /* simply equivalent to ^F + BACKSPACE */
@@ -423,7 +423,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_CTRL('U'):     /* erase begin of line */
-        case KEY_CTRL_EXT_HOME:
+        case KEY_EXT_HOME(KEY_MODIF_CTRL):
           q = clipboard;
           p = str;
           while (p < pos)       /* add deleted part to clipboard */
@@ -443,7 +443,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_CTRL('K'):     /* erase end of line */
-        case KEY_CTRL_EXT_END:
+        case KEY_EXT_END(KEY_MODIF_CTRL):
           q = clipboard;
           p = pos;
           while (p < end)       /* add deleted part to clipboard */
@@ -504,7 +504,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_ALT('B'):      /* go to previous word */
-        case KEY_CTRL_EXT_LEFT:
+        case KEY_EXT_LEFT(KEY_MODIF_CTRL):
           p = (pos == str) ? pos : pos - 1; /* to avoid start of a word */
           p = Skip(p, str, 1, -1);      /* skip separators */
           p = Skip(p, str, 0, -1);      /* skip non separators */
@@ -515,7 +515,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_ALT('F'):      /* go to next word */
-        case KEY_CTRL_EXT_RIGHT:
+        case KEY_EXT_RIGHT(KEY_MODIF_CTRL):
           p = pos;
           p = Skip(p, end, 0, +1);      /* skip non separators */
           p = Skip(p, end, 1, +1);      /* skip separators */
@@ -597,7 +597,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_CTRL('V'):     /* switch insert mode (on/off) */
-        case KEY_EXT_INSERT:
+        case KEY_EXT_INSERT(KEY_MODIF_NONE):
           ins_mode = 1 - ins_mode;
           INS_MODE(ins_mode);
           continue;
@@ -628,7 +628,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_CTRL('P'):     /* history: recall previous line */
-        case KEY_EXT_UP:
+        case KEY_EXT_UP(KEY_MODIF_NONE):
           if (Hist_Is_Empty() || h_no == Hist_Start_Entry())
             goto error;
           *end = '\0';
@@ -646,7 +646,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_CTRL('N'):     /* history: recall next line */
-        case KEY_EXT_DOWN:
+        case KEY_EXT_DOWN(KEY_MODIF_NONE):
           if (Hist_Is_Empty() || h_no == Hist_End_Entry())
             goto error;
           *end = '\0';
@@ -693,7 +693,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_ALT('<'):      /* history: recall first line */
-        case KEY_EXT_PAGE_UP:
+        case KEY_EXT_PAGE_UP(KEY_MODIF_NONE):
           if (Hist_Is_Empty() || h_no == Hist_Start_Entry())
             goto error;
           *end = '\0';
@@ -703,7 +703,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
 
 
         case KEY_ALT('>'):      /* history: recall last line */
-        case KEY_EXT_PAGE_DOWN:
+        case KEY_EXT_PAGE_DOWN(KEY_MODIF_NONE):
           if (Hist_Is_Empty() || h_no == Hist_End_Entry())
             goto error;
           *end = '\0';

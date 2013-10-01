@@ -733,39 +733,66 @@ Pl_LE_Get_Char(void)
             }
 
           /* Encode with closing character and mark and finalise */
-          c = (c << 7) | (1 << 31) | esc_c | extra;
+          c = (WITH_MODIF(c, esc_c) << 7) | (1 << 31) | WITHOUT_MODIF(esc_c) | extra;
 
           /* Convert synonyms so other methods do not have to be aware of them  */
           switch (c)
             {
-            case KEY_EXT_FCT_1_ALT:  c = KEY_EXT_FCT_1;  break;
-            case KEY_EXT_FCT_2_ALT:  c = KEY_EXT_FCT_2;  break;
-            case KEY_EXT_FCT_3_ALT:  c = KEY_EXT_FCT_3;  break;
-            case KEY_EXT_FCT_4_ALT:  c = KEY_EXT_FCT_4;  break;
-            case KEY_EXT_HOME_ALT:   c = KEY_EXT_HOME;   break;
-            case KEY_EXT_END_ALT:    c = KEY_EXT_END;    break;
-            case CYGWIN_FCT(1):      c = KEY_EXT_FCT_1;  break;
-            case CYGWIN_FCT(2):      c = KEY_EXT_FCT_2;  break;
-            case CYGWIN_FCT(3):      c = KEY_EXT_FCT_3;  break;
-            case CYGWIN_FCT(4):      c = KEY_EXT_FCT_4;  break;
-            case CYGWIN_FCT(5):      c = KEY_EXT_FCT_5;  break;
+            case KEY_EXT_FCT_1_ALT:  c = KEY_EXT_FCT_1(meta * KEY_MODIF_ALT);  break;
+            case KEY_EXT_FCT_2_ALT:  c = KEY_EXT_FCT_2(meta * KEY_MODIF_ALT);  break;
+            case KEY_EXT_FCT_3_ALT:  c = KEY_EXT_FCT_3(meta * KEY_MODIF_ALT);  break;
+            case KEY_EXT_FCT_4_ALT:  c = KEY_EXT_FCT_4(meta * KEY_MODIF_ALT);  break;
+            case KEY_EXT_HOME_ALT:   c = KEY_EXT_HOME (meta * KEY_MODIF_ALT);  break;
+            case KEY_EXT_END_ALT:    c = KEY_EXT_END  (meta * KEY_MODIF_ALT);  break;
+            default:
+              {
+                int n, m = meta * KEY_MODIF_ALT;
+
+                /* Test Cygwin versions of F# keys */
+                for (n = 1; n <= 5; n++)
+                  if (c == CYGWIN_FCT(n))
+                    {
+                      c = KEY_EXT_FCT(n, m);
+                      goto synonym_converted;
+                    }
+
+                if (meta) /* Combine in KEY_MODIF_ALT to the key value */
+                  for (m = 0; m < 7; n++) /* Test all modifiers */
+                    {
+                      /* Test F# keys */
+                      for (n = 1; n <= 12; n++)
+                        if (c == KEY_EXT_FCT(n, m))
+                          {
+                            c = KEY_EXT_FCT(n, m | KEY_MODIF_ALT);
+                            goto synonym_converted;
+                          }
+                      /* Test arrow keys */
+                      for (n = 'A'; n <= 'D'; n++)
+                        if (c == KEY_EXT_ARROW(n, m))
+                          {
+                            c = KEY_EXT_ARROW(n, m | KEY_MODIF_ALT);
+                            goto synonym_converted;
+                          }
+                      /* Test home, end, page up, page down, insert and delete */
+                      for (n = 1; n <= 6; n++)
+                        if (c == KEY_EXT_(n, m))
+                          {
+                            c = KEY_EXT_(n, m | KEY_MODIF_ALT);
+                            goto synonym_converted;
+                          }
+                    }
+
+              synonym_converted:
+                break;
+              }
             }
-	  
-#if 0
+
+#if defined(__CYGWIN__)
           switch (c)
             {
-	    case KEY_EXT_FCT_1:   printf("\n\033[31m++++ F1\033[00m\n");   break;
-	    case KEY_EXT_FCT_2:   printf("\n\033[31m++++ F2\033[00m\n");   break;
-	    case KEY_EXT_FCT_3:   printf("\n\033[31m++++ F3\033[00m\n");   break;
-	    case KEY_EXT_FCT_4:   printf("\n\033[31m++++ F4\033[00m\n");   break;
-	    case KEY_EXT_FCT_5:   printf("\n\033[31m++++ F5\033[00m\n");   break;
-	    case KEY_EXT_FCT_6:   printf("\n\033[31m++++ F6\033[00m\n");   break;
-	    case KEY_EXT_FCT_7:   printf("\n\033[31m++++ F7\033[00m\n");   break;
-	    case KEY_EXT_FCT_8:   printf("\n\033[31m++++ F8\033[00m\n");   break;
-	    case KEY_EXT_FCT_9:   printf("\n\033[31m++++ F9\033[00m\n");   break;
-	    case KEY_EXT_FCT_10:  printf("\n\033[31m++++ F10\033[00m\n");  break;
-	    case KEY_EXT_FCT_11:  printf("\n\033[31m++++ F11\033[00m\n");  break;
-	    case KEY_EXT_FCT_12:  printf("\n\033[31m++++ F12\033[00m\n");  break;
+            case KEY_EXT_FCT(11, KEY_MODIF_NONE):  c = KEY_EXT_FCT(1, KEY_MODIF_SHIFT);  break;
+            case KEY_EXT_FCT(12, KEY_MODIF_NONE):  c = KEY_EXT_FCT(2, KEY_MODIF_SHIFT);  break;
+            case KEY_EXT_FCT(13, KEY_MODIF_NONE):  c = KEY_EXT_FCT(3, KEY_MODIF_SHIFT);  break;
             }
 #endif
         }
@@ -798,6 +825,7 @@ LE_Get_Char0(void)
 
   INPUT_RECORD ir;
   DWORD nb;
+  int modif = 0;
   int c;
 
  read_char:
@@ -815,11 +843,17 @@ LE_Get_Char0(void)
           c = ir.Event.KeyEvent.wVirtualKeyCode;
           if (c < 0x15 || c > 0x87)     /* e.g. CTRL key alone */
             goto read_char;
-          if (ir.Event.KeyEvent.dwControlKeyState &
-              (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
-            c = (2 << 8) | c;
-          else
-            c = (1 << 8) | c;
+
+          if (ir.Event.KeyEvent.dwControlKeyState & (SHIFT_PRESSED))
+            modif |= KEY_MODIF_SHIFT;
+
+          if (ir.Event.KeyEvent.dwControlKeyState & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED))
+            modif |= KEY_MODIF_ALT;
+
+          if (ir.Event.KeyEvent.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED))
+            modif |= KEY_MODIF_CTRL;
+
+          c = MAKE_KEY(c, modif);
         }
       else if (oem_get)
         {
