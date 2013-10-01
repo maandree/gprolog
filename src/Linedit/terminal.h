@@ -2,7 +2,7 @@
  * GNU Prolog                                                              *
  *                                                                         *
  * Part  : line-edit library                                               *
- * File  : stty.h                                                          *
+ * File  : terminal.h                                                      *
  * Descr.: basic terminal operations - header file                         *
  * Author: Daniel Diaz                                                     *
  *                                                                         *
