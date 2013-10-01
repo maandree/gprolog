@@ -466,7 +466,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('W'):      /* copy (from mark) to clipboard */
+        case KEY_ALT('W'):      /* copy (from mark) to clipboard */
         case KEY_CTRL('W'):     /* cut (from mark) to clipboard */
           if (mark == NULL)
             goto error;
@@ -486,7 +486,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           while (p < stop)
             *q++ = *p++;
           *q = '\0';
-          if (c == KEY_META('W'))
+          if (c == KEY_ALT('W'))
             continue;
 
           n = stop - start;
@@ -503,7 +503,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('B'):      /* go to previous word */
+        case KEY_ALT('B'):      /* go to previous word */
         case KEY_CTRL_EXT_LEFT:
           p = (pos == str) ? pos : pos - 1; /* to avoid start of a word */
           p = Skip(p, str, 1, -1);      /* skip separators */
@@ -514,7 +514,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('F'):      /* go to next word */
+        case KEY_ALT('F'):      /* go to next word */
         case KEY_CTRL_EXT_RIGHT:
           p = pos;
           p = Skip(p, end, 0, +1);      /* skip non separators */
@@ -524,7 +524,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('C'):      /* capitalize word */
+        case KEY_ALT('C'):      /* capitalize word */
           p = pos;
           p = Skip(p, end, 1, +1);      /* skip separators */
           if (islower(*p))
@@ -535,7 +535,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('L'):      /* convert to lower case */
+        case KEY_ALT('L'):      /* convert to lower case */
           p = pos;
           p = Skip(p, end, 1, +1);      /* skip separators */
           for (; p < end && !Is_A_Separator(*p); p++)
@@ -545,7 +545,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('U'):      /* convert to upper case */
+        case KEY_ALT('U'):      /* convert to upper case */
           p = pos;
           p = Skip(p, end, 1, +1);      /* skip separators */
           for (; p < end && !Is_A_Separator(*p); p++)
@@ -589,7 +589,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('\t'):     /* transform a tab to spaces */
+        case KEY_ALT('\t'):     /* transform a tab to spaces */
           for (n = Tab_To_Spaces(pos - str); n; n--)
             if (!New_Char(' ', str, size, &pos, &end))
               goto error;
@@ -655,7 +655,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           goto write_hist_line;
 
 
-        case KEY_META('P'):      /* history: recall previous matching line */
+        case KEY_ALT('P'):      /* history: recall previous matching line */
           if (Hist_Is_Empty() || pos == str)
             goto error;
           *end = '\0';
@@ -677,7 +677,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           continue;
 
 
-        case KEY_META('N'):      /* history: recall next matching line */
+        case KEY_ALT('N'):      /* history: recall next matching line */
           if (Hist_Is_Empty() || pos == str)
             goto error;
           *end = '\0';
@@ -692,7 +692,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           goto write_hist_match_line;
 
 
-        case KEY_META('<'):      /* history: recall first line */
+        case KEY_ALT('<'):      /* history: recall first line */
         case KEY_EXT_PAGE_UP:
           if (Hist_Is_Empty() || h_no == Hist_Start_Entry())
             goto error;
@@ -702,7 +702,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           goto write_hist_line;
 
 
-        case KEY_META('>'):      /* history: recall last line */
+        case KEY_ALT('>'):      /* history: recall last line */
         case KEY_EXT_PAGE_DOWN:
           if (Hist_Is_Empty() || h_no == Hist_End_Entry())
             goto error;
@@ -712,7 +712,7 @@ Pl_LE_FGets(char *str, int size, char *prompt, int display_prompt)
           goto write_hist_line;
 
 
-        case KEY_META('?'):      /* display help */
+        case KEY_ALT('?'):      /* display help */
         display_help:
           NewLn();
           Display_Help();

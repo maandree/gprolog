@@ -771,7 +771,7 @@ Pl_LE_Get_Char(void)
         }
       else
 #endif
-        c = KEY_META(esc_c);
+        c = KEY_ALT(esc_c);
     }
 
   return c;

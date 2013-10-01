@@ -43,7 +43,7 @@
 
 #define ESC                        0x1b
 #define KEY_CTRL(x)                ((x) & 0x1f)
-#define KEY_META(x)                ((255 << (32 - 8)) | (x) | 0x20)
+#define KEY_ALT(x)                 ((255 << (32 - 8)) | (x) | 0x20)
 
 #define KEY_BACKSPACE              '\b'
 #define KEY_DELETE                 0x7f
